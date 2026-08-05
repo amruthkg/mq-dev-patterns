@@ -20,7 +20,7 @@ import ReactFlow, {
   Background,  
   ReactFlowProvider,
 } from 'react-flow-renderer';
-import 'reactflow/dist/style.css';
+import 'react-flow-renderer/dist/style.css';
 import PublisherNode from '../../Map/Publisher.node';
 import SubscriberNode from '../../Map/Subscriber.node';
 import TopicNode from '../../Map/Topic.node';

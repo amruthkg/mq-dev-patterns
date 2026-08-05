@@ -16,7 +16,7 @@
 
 import React, { Component } from 'react';
 import TutorialHeader from './components/TutorialHeader';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import LandingPage from './content/LandingPage';
 import RepoPage from './content/RepoPage';
 import { Content, Theme } from '@carbon/react';
@@ -43,10 +43,10 @@ class App extends Component {
             pauseOnHover={false}
             theme="dark"
           />
-          <Switch>
-            <Route exact path="/" component={LandingPage} />
-            <Route path="/repos" component={RepoPage} />
-          </Switch>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/repos" element={<RepoPage />} />
+          </Routes>
         </Content>
       </>
     );

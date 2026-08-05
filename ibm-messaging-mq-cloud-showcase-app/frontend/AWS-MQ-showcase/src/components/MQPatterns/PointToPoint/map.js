@@ -20,7 +20,7 @@ import ReactFlow, {
   Background,  
   ReactFlowProvider,
 } from 'react-flow-renderer';
-import 'reactflow/dist/style.css';
+import 'react-flow-renderer/dist/style.css';
 import ProducerNode from '../../Map/Producer.node';
 import ConsumerNode from '../../Map/Consumer.node';
 import QueueNode from '../../Map/Queue.node';

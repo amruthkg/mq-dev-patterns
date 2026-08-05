@@ -14,23 +14,18 @@
  * limitations under the License.
  **/
 
-import 'core-js/modules/es7.array.includes';
-import 'core-js/modules/es6.array.fill';
-import 'core-js/modules/es6.string.includes';
-import 'core-js/modules/es6.string.trim';
-import 'core-js/modules/es7.object.values';
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import './index.scss';
 import App from './App';
 import { HashRouter as Router } from 'react-router-dom';
 import * as serviceWorker from './serviceWorker';
 
-ReactDOM.render(
+const root = createRoot(document.getElementById('root'));
+root.render(
   <Router>
     <App />
-  </Router>,
-  document.getElementById('root')
+  </Router>
 );
 
 // If you want your app to work offline and load faster, you can change
