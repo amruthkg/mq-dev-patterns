@@ -1,5 +1,5 @@
 #
-# * Copyright 2022, 2023 IBM Corp.
+# * Copyright 2022, 2026 IBM Corp.
 # *
 # * Licensed under the Apache License, Version 2.0 (the 'License');
 # * you may not use this file except in compliance with the License.
@@ -35,11 +35,17 @@ services:
         - com.ibm.mq.app=mqapp
     image: ${IMAGE_ECS_REGISTRY_URI:?err}/${CLUSTER_NAME:?err}:frontend    
     ports:
-      - 3000:3000  
+      # Host port 3000 → container port 8080 (nginx-unprivileged listens on 8080).
+      # In ECS/AWS deployments the ALB handles external traffic; this mapping is
+      # only used when running aws-docker-compose.yaml locally for testing.
+      - 3000:8080
     networks:
       - app-pubic-network  
-    environment:   
-      - REACT_APP_BE_HOST=be     
+    environment:
+      - REACT_APP_BE_HOST=be
+      - REACT_APP_BE_PORT=8080
+      - REACT_APP_BE_TLS=false
+      - REACT_APP_FE_AS_PROXY=true
       - REACT_APP_IS_FOR_CODING_CHALLENGE=false
     depends_on:
       - be
@@ -49,7 +55,7 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2Gb  
+          memory: 2G
   be:
     build:
       context: backend/.
@@ -74,7 +80,7 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 4Gb         
+          memory: 4G
   mq:
     image: "icr.io/ibm-messaging/mq:latest"
     ports:
@@ -92,7 +98,7 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 2Gb  
+          memory: 2G
 volumes:
   qm1data:
     driver_opts:

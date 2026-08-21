@@ -13,44 +13,46 @@
 #  limitations under the License.
 
 # This Dockerfile has two separate stages.
-#The first stage is builds the Node program.
+# The first stage builds the Node program.
 # The second stage is a runtime-only container that holds just the things we need to
-# execute the compiled program.
+# serve the compiled program.
 
 ###########################################################
 # This starts the BUILD phase
 ###########################################################
-FROM node:20-slim AS builder
-ENV APP_DIR=/usr/local/
-WORKDIR ${APP_DIR}
-RUN apt-get update \
-   && apt-get install -y git
+FROM public.ecr.aws/docker/library/node:22-alpine AS builder
+WORKDIR /app
 
-#get the application
-COPY ./AWS-MQ-showcase/ ./
+# Copy manifest files first so npm ci is cached independently of source changes
+COPY ./AWS-MQ-showcase/package.json ./AWS-MQ-showcase/package-lock.json ./
 
-#install packages for the application
+# Install dependencies from the lockfile; skip Husky hooks in CI/Docker
 ENV HUSKY=0
-RUN npm install
+RUN npm ci
 
-#Build the application
+# Copy application source and build
+COPY ./AWS-MQ-showcase/ ./
 RUN npm run build
 
 ###########################################################
 # This starts the RUNTIME phase
 ###########################################################
-# Now that there is a container with the compiled program we can have a smaller
-# runtime image.
-FROM nginx:stable-alpine3.17 AS frontendimage
+# nginx-unprivileged runs as UID 101 (non-root) and listens on port 8080
+FROM public.ecr.aws/nginx/nginx-unprivileged:stable-alpine AS frontendimage
 
-#Set nginx configuration as per application requirements
+# Set nginx configuration as per application requirements
 COPY nginx.conf.template /etc/nginx/conf.d/
 COPY nginx.conf.proxy.template /etc/nginx/conf.d/
-COPY docker-entrypoint.sh /
+# --chmod=755 ensures the entrypoint is executable regardless of host umask
+COPY --chmod=755 docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
-#Copy over only the built code to the default nginx location
-COPY --from=builder /usr/local/dist /usr/share/nginx/html
 
-EXPOSE 80
+# Copy only the built static assets from the builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-CMD ["nginx","-g","daemon off;"]
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://localhost:8080/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

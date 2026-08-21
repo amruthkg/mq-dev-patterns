@@ -1,0 +1,6 @@
+AWS-MQ-showcase/node_modules
+AWS-MQ-showcase/dist
+AWS-MQ-showcase/.env
+AWS-MQ-showcase/.env.*
+AWS-MQ-showcase/coverage
+.DS_Store

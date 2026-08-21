@@ -1,4 +1,4 @@
-#  Copyright 2022, 2024 IBM Corp.
+#  Copyright 2022, 2026 IBM Corp.
 #  Licensed under the Apache License, Version 2.0 (the 'License');
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
@@ -19,7 +19,7 @@ services:
         - com.ibm.mq.app=mqapp
     image: frontend:0.1    
     ports:
-      - 3000:80    
+      - 3000:8080
     networks:
       - app-pubic-network      
     depends_on:
@@ -58,7 +58,7 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 4Gb  
+          memory: 4G
   mq:
     image: "icr.io/ibm-messaging/mq:latest"
     ports:
