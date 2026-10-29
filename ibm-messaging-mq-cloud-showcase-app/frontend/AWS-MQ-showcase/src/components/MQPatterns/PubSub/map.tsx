@@ -14,7 +14,7 @@
  * limitations under the License.
  **/
 
-import React, { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type DragEvent } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -22,6 +22,7 @@ import {
   BackgroundVariant,
   ReactFlowProvider,
 } from '@xyflow/react';
+import type { ReactFlowInstance } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import PublisherNode from '../../Map/Publisher.node';
 import SubscriberNode from '../../Map/Subscriber.node';
@@ -30,6 +31,7 @@ import CustomEdge from '../../Map/Custom-pubsub.edge';
 import '../../Map/map.scss';
 import useStore from './store';
 import Sidebar from './Sidebar';
+import type { MQFlowNode } from '../../../types';
 
 const nodeTypes = {
   consumer: SubscriberNode,
@@ -49,54 +51,61 @@ function Flow() {
 
   const _addNode = useStore((state) => state.addNode);
 
-  const reactFlowWrapper = useRef(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
 
   const onDrop = useCallback(
-    (event) => {
+    (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
+
+      if (!reactFlowWrapper.current || !reactFlowInstance) return;
+
       const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
       const type = event.dataTransfer.getData('application/reactflow');
 
-      if (typeof type === 'undefined' || !type) {
-        return;
-      }
+      if (!type) return;
 
       const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       });
-      let node = {};
 
       if (type === 'producer') {
-        node = {
+        _addNode({
           id: getId(),
-          type: type,
+          type: 'producer',
           data: {
             role: 'Producer',
             label: 'Publisher',
             connectedQueue: '',
             isActive: false,
           },
-          position: position,
+          position,
           sourcePosition: 'right',
-        };
-      } else if (type === 'consumer') {
-        node = {
+        } as MQFlowNode);
+        return;
+      }
+
+      if (type === 'consumer') {
+        _addNode({
           id: getId(),
-          type: type,
+          type: 'consumer',
           data: {
             role: 'Consumer',
             label: 'Subscriber',
             connectedQueue: '',
             subscriptionState: 0,
           },
-          position: position,
+          position,
           targetPosition: 'left',
           draggable: true,
-        };
-      } else if (type === 'queue') {
-        node = {
+        } as MQFlowNode);
+        return;
+      }
+
+      if (type === 'queue') {
+        _addNode({
           id: getId(),
           type: 'queue',
           data: {
@@ -104,19 +113,17 @@ function Flow() {
             depth: 0,
             queueName: '',
           },
-          position: position,
+          position,
           sourcePosition: 'right',
           targetPosition: 'left',
           draggable: true,
-        };
-      } else {
-        return;
+        } as MQFlowNode);
       }
-      _addNode(node);
     },
     [reactFlowInstance]
   );
-  const onDragOver = useCallback((event) => {
+
+  const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
@@ -131,7 +138,6 @@ function Flow() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            // onEdgeUpdate={onEdgeUpdate}
             onDrop={onDrop}
             onDragOver={onDragOver}
             onInit={setReactFlowInstance}
