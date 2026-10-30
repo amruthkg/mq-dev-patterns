@@ -14,40 +14,44 @@
  * limitations under the License.
  **/
 
-import React from 'react';
-import { LineChart } from '@carbon/charts-react';
+import { GroupedBarChart } from '@carbon/charts-react';
 import '@carbon/charts/styles.css';
-
 import '../shared/chart.scss';
+import { ScaleTypes } from '@carbon/charts';
+import type { BarChartOptions } from '@carbon/charts';
+import type { BarChartEntry } from '../../../types';
+import { CHART_COLORS } from '../../../utils/colors';
 
-const DEFAULTOPTION = {
-  title: 'Queue manager 1',
+const DEFAULTOPTION: BarChartOptions = {
+  title: 'Queue Manager 1',
   axes: {
-    bottom: {
-      title: 'Time',
-      mapsTo: 'time',
-      scaleType: 'linear',
-    },
     left: {
       mapsTo: 'value',
       title: 'Queues depth',
-      scaleType: 'linear',
       thresholds: [
         {
           value: 5000,
           label: 'Max depth',
-          fillColor: 'orange',
+          fillColor: CHART_COLORS.THRESHOLD,
         },
       ],
     },
+    bottom: {
+      scaleType: ScaleTypes.LABELS,
+      mapsTo: 'key',
+      title: 'Queues',
+    },
   },
-  curve: 'curveMonotoneX',
   height: '400px',
 };
 
-const Chart1 = (props) => {
-  if (!props.data || !props.data.length) return null;
-  return <LineChart data={props.data} options={DEFAULTOPTION} />;
+interface Props {
+  data: BarChartEntry[];
+}
+
+const Chart2 = ({ data }: Props) => {
+  if (!data.length) return null;
+  return <GroupedBarChart data={data} options={DEFAULTOPTION} />;
 };
 
-export default Chart1;
+export default Chart2;
